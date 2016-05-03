@@ -1,24 +1,16 @@
-package com.xpg.java;
+package com.xpg.socket;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import com.xpg.utils.KeyUtil;
 
-public class HttpsJavaClient {
+public class SocketClient {
 
     private OutputStream output = null;
     private InputStream input = null;
@@ -80,7 +72,7 @@ public class HttpsJavaClient {
 
     
     public static void main(String[] args) throws Exception {
-    	HttpsJavaClient client = new HttpsJavaClient();
+    	SocketClient client = new SocketClient();
         client.sslSocket2();
         client.sender();
     }

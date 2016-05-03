@@ -1,4 +1,4 @@
-package com.xpg.java;
+package com.xpg.socket;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,7 +10,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 
 import com.xpg.utils.KeyUtil;
 
-public class HttpsJavaServer {
+public class SocketServer {
 
     private int server_port = 10010;
     private int MAX_BUF_SIZE = 1024;
@@ -69,7 +69,7 @@ public class HttpsJavaServer {
     }
 
     public static void main(String[] args) throws Exception {
-    	HttpsJavaServer server = new HttpsJavaServer();
+    	SocketServer server = new SocketServer();
         server.sslSocketServer();
     }
 }
