@@ -34,7 +34,7 @@ public class MyIOHandler implements IoHandler {
 //        session.write(date.toString());
 //        System.out.println("Message written...");
     	
-        response(session,"{\"name\":\"jeff\"}");
+        response(session,"{\"message\":\"Hello,client!\"}");
         System.out.println("接受到的消息:" + str );
 
     }

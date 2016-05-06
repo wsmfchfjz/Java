@@ -1,98 +1,151 @@
 package com.xpg.utils;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.URL;
+import java.util.Map;
 
-import javax.net.SocketFactory;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLSession;
 
-import org.apache.commons.httpclient.ConnectTimeoutException;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HttpConnectionParams;
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.entity.ContentProducer;
+import org.apache.http.entity.EntityTemplate;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.util.EntityUtils;
 
-
-@SuppressWarnings("deprecation")
+/**
+ * 只支持 Content-type = application/json; charset=UTF-8;
+ * jeff - 16/05/05
+ */
 public class HttpClientUtil {
+
+	private static final String CONTENT_TYPE = "application/json; charset=UTF-8";
 	
-	public static final String CONTENT_TYPE = "application/json; charset=UTF-8";
+	public static String post(String url, String body, Map<String, String> headers) {
+		HttpClient httpClient = getHttpClient(url);
+		if(httpClient == null){
+			return "HttpClient init fail";
+		}
+		HttpPost httpPost = new HttpPost(url);
+		if(headers != null){
+			for (Map.Entry<String, String> entry : headers.entrySet()) {
+				httpPost.setHeader(entry.getKey(), entry.getValue());
+			}
+		}
+		String responseContent = "";
+		try {
+			StringEntity entity = new StringEntity(body, "utf-8");
+            entity.setContentEncoding("UTF-8");
+            entity.setContentType("application/json");
+            httpPost.setEntity(entity);
+
+			HttpResponse httpResponse = httpClient.execute(httpPost);
+			responseContent = EntityUtils.toString(httpResponse.getEntity(),
+					"UTF-8");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			httpPost.releaseConnection();
+		}
+		return responseContent;
+	}
 	
-    /**
-     * 该post方法没有设置header
-     */
-    public static String post(String url, String body) {
-        PostMethod post = new PostMethod(url);
-        post.setRequestBody(body);
-        // 指定请求内容的类型
-        post.setRequestHeader("Content-type", CONTENT_TYPE);
-        HttpClient httpclient = new HttpClient();// 创建 HttpClient 的实例
-        String res;
-        try {
-            httpclient.executeMethod(post);
-            res = post.getResponseBodyAsString();
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-        post.releaseConnection();// 释放连接
-        return res;
-    }
-    
-    /**
-     * 该post方法没有设置header
-     */
-    public static String httpsPost(String url, String body) {
-        PostMethod post = new PostMethod(url);
-        post.setRequestBody(body);
-        // 指定请求内容的类型
-        post.setRequestHeader("Content-type", CONTENT_TYPE);
-        HttpClient httpclient = new HttpClient();// 创建 HttpClient 的实例
-        String res;
-        try {
-            httpclient.executeMethod(post);
-            res = post.getResponseBodyAsString();
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-        post.releaseConnection();// 释放连接
-        return res;
-    }
-    
-//    public class WebClientDevWrapper {
-//    	 
-//        public HttpClient wrapClient(HttpClient base) throws Exception {
-//            SSLContext ctx = SSLContext.getInstance("TLS");
-//            X509TrustManager tm = new X509TrustManager() {
-//                @Override
-//                public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
-//                }
-//     
-//                @Override
-//                public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
-//                }
-//     
-//                @Override
-//                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-//                    return new java.security.cert.X509Certificate[0];
-//                }
-//            };
-//            ctx.init(null, new TrustManager[]{tm}, null);
-//            
-//    		SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-//            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-//            
-//            ClientConnectionManager ccm = base.getConnectionManager();
-//            SchemeRegistry sr = ccm.getSchemeRegistry();
-//            sr.register(new Scheme("https", ssf, 443));
-//            return new DefaultHttpClient(ccm, base.getParams());
-//        }
-//    }
-    
+	public static String get(String url, Map<String, String> headers) {
+		HttpClient httpClient = getHttpClient(url);
+		if(httpClient == null){
+			return "HttpClient init fail";
+		}
+		HttpGet httpGet = new HttpGet(url);
+		if(headers != null){
+			for (Map.Entry<String, String> entry : headers.entrySet()) {
+				httpGet.setHeader(entry.getKey(), entry.getValue());
+			}
+		}
+		String responseContent = "";
+		try {
+			HttpResponse httpResponse = httpClient.execute(httpGet);
+			responseContent = EntityUtils.toString(httpResponse.getEntity(),
+					"UTF-8");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			httpGet.releaseConnection();
+		}
+		return responseContent;
+	}
+	
+	public static String delete(String url, Map<String, String> headers) {
+		HttpClient httpClient = getHttpClient(url);
+		if(httpClient == null){
+			return "HttpClient init fail";
+		}
+		HttpDelete httpDelet = new HttpDelete(url);
+		if(headers != null){
+			for (Map.Entry<String, String> entry : headers.entrySet()) {
+				httpDelet.setHeader(entry.getKey(), entry.getValue());
+			}
+		}
+		String responseContent = "";
+		try {
+			HttpResponse httpResponse = httpClient.execute(httpDelet);
+			responseContent = EntityUtils.toString(httpResponse.getEntity(),
+					"UTF-8");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			httpDelet.releaseConnection();
+		}
+		return responseContent;
+	}
+	
+	
+	
+	public static String httpPost(String url, String body) {
+		return post(url, body, null);
+	}
+
+	public static String httpGet(String url) {
+		return get(url, null);
+	}
+	
+	@SuppressWarnings("deprecation")
+	private static HttpClient getHttpClient(String url){
+		HttpClient httpClient = null;
+		try {
+			if (new URL(url).getProtocol().toUpperCase().equals("HTTPS")) {
+				// 相信自己的CA和所有自签名的证书
+				SSLContext sslcontext = SSLContexts
+						.custom()
+						.loadTrustMaterial(KeyUtil.getClientTrustStore(),
+								new TrustSelfSignedStrategy()).build();//将KeyUtil.getClientTrustStore()改成null，则信任任何证书
+				// 只允许使用TLSv1协议
+				SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+						sslcontext,
+						new String[] { "TLSv1" },
+						null,
+						SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+				httpClient = HttpClients.custom().setSSLSocketFactory(sslsf)
+						.build();
+			} else {
+				httpClient = HttpClientBuilder.create().build();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return httpClient;
+	}
+
 }

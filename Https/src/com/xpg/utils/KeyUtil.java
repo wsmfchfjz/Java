@@ -2,6 +2,7 @@ package com.xpg.utils;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -23,7 +24,7 @@ public class KeyUtil {
 
 	public static SSLContext getServerSSLContext() throws Exception {
 
-		KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		KeyStore keyStore = KeyStore.getInstance("JKS");
 
 		keyStore.load(new FileInputStream(KST_URL), KST_PASSWORD.toCharArray());
 
@@ -44,6 +45,12 @@ public class KeyUtil {
 				new SecureRandom());
 
 		return context;
+	}
+	
+	public static KeyStore getClientTrustStore() throws Exception{
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(new FileInputStream(TST_URL), TST_PASSWORD.toCharArray());
+		return ks;
 	}
 
 	private static class MyX509TrustManager implements X509TrustManager {
