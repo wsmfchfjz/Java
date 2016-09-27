@@ -57,7 +57,7 @@ public class HttpURLConnectionUtil {
 			
 			HttpsURLConnection httpsConn = (HttpsURLConnection)url.openConnection();
             //设置套接工厂 
-//            httpsConn.setSSLSocketFactory(KeyUtil.getClientSSLContext().getSocketFactory());
+            httpsConn.setSSLSocketFactory(KeyUtil.getClientSSLContext().getSocketFactory());
             httpsConn.setHostnameVerifier(DO_NOT_VERIFY);
             connection = httpsConn;
 		} else {

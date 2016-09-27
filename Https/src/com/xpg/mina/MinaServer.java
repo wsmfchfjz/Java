@@ -18,7 +18,8 @@ import com.xpg.utils.KeyUtil;
 
 public class MinaServer {
 	
-	private static final int PORT= 443;
+//	private static final int PORT= 443;
+	private static final int PORT= 9124;
 	
 	public void startServer() throws Exception{
 		
